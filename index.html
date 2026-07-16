@@ -85,8 +85,12 @@
   .catpill.khmer{background:var(--green);}
 
   .toolbar{display:flex;justify-content:space-between;align-items:center;margin-top:18px;font-size:12.5px;color:#8a7d6d;flex-wrap:wrap;gap:8px;}
+  .toolbar-actions{display:flex;gap:8px;flex-wrap:wrap;}
   .reset{background:none;border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;color:#8a7d6d;font-family:inherit;font-size:12.5px;}
   .reset:hover{border-color:var(--red);color:var(--red);}
+  .pdfbtn{background:var(--red);border:1px solid var(--red);border-radius:8px;padding:7px 12px;cursor:pointer;color:#fff;font-family:inherit;font-size:12.5px;font-weight:700;}
+  .pdfbtn:hover{background:var(--red-dark);border-color:var(--red-dark);}
+  .pdfbtn:disabled{opacity:.6;cursor:default;}
 
   .simplecard{background:var(--paper);border:1px solid var(--line);border-radius:16px;margin-top:18px;box-shadow:0 2px 10px rgba(36,27,27,0.04);overflow:hidden;}
   .simplecard .head{padding:16px 18px;color:#fff;background:var(--teal);display:flex;align-items:center;justify-content:space-between;}
@@ -155,7 +159,7 @@
       <div class="hint">ជ្រើសរើសភេទ និងវេន រួចចុច "បន្ថែម" — របាយការណ៍នឹងផ្ញើទៅ Telegram ស្វ័យប្រវត្តិ។ ពេលលុប ប្រព័ន្ធនឹងសួរមូលហេតុជាមុនសិន។</div>
     </div>
 
-    <div class="board">
+    <div class="board" id="pdfCapture">
       <div class="col" data-cat="fulltime">
         <div class="col-head"><h3>សិស្សរៀនពេញម៉ោង</h3><span class="count" id="count-fulltime">0</span></div>
         <div class="col-body" id="list-fulltime"><div class="loading">កំពុងផ្ទុក...</div></div>
@@ -172,7 +176,10 @@
 
     <div class="toolbar">
       <span>សិស្សសរុបទាំង៣វេន: <strong id="count-total">0</strong> នាក់ — ទិន្នន័យរក្សាទុកស្វ័យប្រវត្តិ</span>
-      <button class="reset" id="resetBtn">សម្អាតទិន្នន័យវេនទាំងអស់</button>
+      <div class="toolbar-actions">
+        <button class="pdfbtn" id="pdfBtn">⬇ ដោនឡូត PDF</button>
+        <button class="reset" id="resetBtn">សម្អាតទិន្នន័យវេនទាំងអស់</button>
+      </div>
     </div>
   </div>
 
@@ -243,6 +250,8 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 const TELEGRAM_BOT_TOKEN = '8501623225:AAGu-F_GHSQ-dLBrEME7eidOpW2yDf3qvXw';
 const SUMMARY_CHAT_ID = '-1003814592979';
@@ -443,6 +452,81 @@ document.getElementById("resetBtn").addEventListener("click", async ()=>{
   roster = [];
   await saveKey(STORAGE_MAIN, roster);
   renderMain();
+});
+
+document.getElementById("pdfBtn").addEventListener("click", async ()=>{
+  const btn = document.getElementById("pdfBtn");
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "កំពុងបង្កើត PDF...";
+  try{
+    const target = document.getElementById("pdfCapture");
+    const SCALE = 2;
+
+    // Record the bottom edge (in CSS px, relative to the capture container) of every
+    // card, so page breaks can be placed between cards instead of through them.
+    const targetRect = target.getBoundingClientRect();
+    const cutPoints = new Set([Math.round(targetRect.height)]);
+    target.querySelectorAll(".card").forEach(card=>{
+      const r = card.getBoundingClientRect();
+      cutPoints.add(Math.round(r.bottom - targetRect.top));
+    });
+    const sortedCutsCss = Array.from(cutPoints).sort((a,b)=>a-b);
+
+    const canvas = await html2canvas(target, {
+      scale: SCALE,
+      backgroundColor: "#FBF7EF",
+      useCORS: true
+    });
+
+    const pxPerCss = canvas.width / targetRect.width; // actual canvas px per CSS px
+    const sortedCutsPx = sortedCutsCss.map(v=> Math.round(v * pxPerCss));
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 8;
+    const usableWidth = pageWidth - margin * 2;
+    const usableHeight = pageHeight - margin * 2;
+    const pxPerMm = canvas.width / usableWidth; // uniform scale (width fitted to page)
+    const pageHeightPx = Math.floor(usableHeight * pxPerMm);
+
+    let cursor = 0;
+    let firstPage = true;
+    while (cursor < canvas.height - 1) {
+      const limit = cursor + pageHeightPx;
+      const candidates = sortedCutsPx.filter(p => p > cursor && p <= limit);
+      let cut = candidates.length ? candidates[candidates.length - 1] : Math.min(limit, canvas.height);
+      cut = Math.min(cut, canvas.height);
+      if (cut <= cursor) cut = Math.min(limit, canvas.height); // safety: force progress
+
+      const sliceHeightPx = cut - cursor;
+      const sliceCanvas = document.createElement("canvas");
+      sliceCanvas.width = canvas.width;
+      sliceCanvas.height = sliceHeightPx;
+      const sctx = sliceCanvas.getContext("2d");
+      sctx.fillStyle = "#FBF7EF";
+      sctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+      sctx.drawImage(canvas, 0, cursor, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+      const sliceData = sliceCanvas.toDataURL("image/png");
+      const sliceHeightMm = sliceHeightPx / pxPerMm;
+
+      if (!firstPage) pdf.addPage();
+      pdf.addImage(sliceData, "PNG", margin, margin, usableWidth, sliceHeightMm);
+      firstPage = false;
+      cursor = cut;
+    }
+
+    pdf.save(`សិស្សប្រចាំវេន_${todayStr().replace(/\//g,"-")}.pdf`);
+    showToast("បានដោនឡូត PDF ✓");
+  }catch(e){
+    console.error("PDF export failed:", e);
+    showToast("មិនអាចបង្កើត PDF បានទេ", true);
+  }finally{
+    btn.disabled = false;
+    btn.textContent = original;
+  }
 });
 
 async function sendTelegramReport({name, gender, category, action, reason}){
