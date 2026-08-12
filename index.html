@@ -84,6 +84,20 @@
   .catpill.english{background:var(--blue);}
   .catpill.khmer{background:var(--green);}
 
+  .col-foot{padding:10px 16px;border-top:1.5px dashed var(--line);background:#FBF7EF;font-size:13px;font-weight:700;color:var(--ink);display:flex;align-items:center;justify-content:space-between;}
+  .col-foot span{color:var(--red-dark);}
+
+  .grandtotal{
+    grid-column:1 / -1;
+    margin-top:0;border-radius:16px;padding:20px 26px;
+    background:linear-gradient(135deg,var(--gold) 0%,#C98A1E 100%);
+    display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;
+    box-shadow:0 8px 22px rgba(227,167,46,0.3);
+  }
+  .grandtotal .gt-label{font-family:'Poppins',sans-serif;font-size:15px;font-weight:700;color:#4a3410;text-transform:uppercase;letter-spacing:.05em;}
+  .grandtotal .gt-value{font-family:'Poppins',sans-serif;font-size:30px;font-weight:800;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,0.15);}
+  .grandtotal .gt-value strong{font-size:34px;}
+
   .toolbar{display:flex;justify-content:space-between;align-items:center;margin-top:18px;font-size:12.5px;color:#8a7d6d;flex-wrap:wrap;gap:8px;}
   .toolbar-actions{display:flex;gap:8px;flex-wrap:wrap;}
   .reset{background:none;border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;color:#8a7d6d;font-family:inherit;font-size:12.5px;}
@@ -163,19 +177,27 @@
       <div class="col" data-cat="fulltime">
         <div class="col-head"><h3>សិស្សរៀនពេញម៉ោង</h3><span class="count" id="count-fulltime">0</span></div>
         <div class="col-body" id="list-fulltime"><div class="loading">កំពុងផ្ទុក...</div></div>
+        <div class="col-foot">សរុបសិស្ស <span id="foot-fulltime">0</span> នាក់</div>
       </div>
       <div class="col" data-cat="english">
         <div class="col-head"><h3>សិស្សរៀនតែ English</h3><span class="count" id="count-english">0</span></div>
         <div class="col-body" id="list-english"><div class="loading">កំពុងផ្ទុក...</div></div>
+        <div class="col-foot">សរុបសិស្ស <span id="foot-english">0</span> នាក់</div>
       </div>
       <div class="col" data-cat="khmer">
         <div class="col-head"><h3>សិស្សរៀនតែខ្មែរ</h3><span class="count" id="count-khmer">0</span></div>
         <div class="col-body" id="list-khmer"><div class="loading">កំពុងផ្ទុក...</div></div>
+        <div class="col-foot">សរុបសិស្ស <span id="foot-khmer">0</span> នាក់</div>
+      </div>
+
+      <div class="grandtotal">
+        <span class="gt-label">សិស្សសរុបទាំង៣វេន</span>
+        <span class="gt-value"><strong id="count-total">0</strong> នាក់</span>
       </div>
     </div>
 
     <div class="toolbar">
-      <span>សិស្សសរុបទាំង៣វេន: <strong id="count-total">0</strong> នាក់ — ទិន្នន័យរក្សាទុកស្វ័យប្រវត្តិ</span>
+      <span>ទិន្នន័យរក្សាទុកស្វ័យប្រវត្តិ</span>
       <div class="toolbar-actions">
         <button class="pdfbtn" id="pdfBtn">⬇ ដោនឡូត PDF</button>
         <button class="reset" id="resetBtn">សម្អាតទិន្នន័យវេនទាំងអស់</button>
@@ -330,6 +352,7 @@ const PRESET = [
   {n:"សុភ័ក្រ វីរៈសិទ្ធិ", c:"khmer"},
   {n:"អៀ ជីងហ័រ", c:"khmer"},
   {n:"លីម ហុីប៉ា", c:"khmer"},
+  {n:"ជាឡិច កូលីន", c:"khmer"},
   {n:"អៀវ ហាក់លីវីឆៃ", c:"khmer"},
   {n:"វិសាល​ សុព័ណ៍បេឡា", c:"khmer"}
   
@@ -410,6 +433,7 @@ function renderMain(){
     const items = roster.filter(s=>s.category===cat);
     total += items.length;
     document.getElementById("count-"+cat).textContent = items.length;
+    document.getElementById("foot-"+cat).textContent = items.length;
     const listEl = document.getElementById("list-"+cat);
     listEl.innerHTML = items.length===0 ? '<div class="empty">មិនទាន់មានសិស្សនៅឡើយ</div>' :
       items.map((s,i)=>{
@@ -462,8 +486,21 @@ document.getElementById("pdfBtn").addEventListener("click", async ()=>{
   const original = btn.textContent;
   btn.disabled = true;
   btn.textContent = "កំពុងបង្កើត PDF...";
+
+  const target = document.getElementById("pdfCapture");
+  // Save inline styles so we can force a 3-column side-by-side layout for the
+  // capture even on narrow/mobile viewports (where the responsive CSS would
+  // normally stack the columns), then restore them afterwards.
+  const prevWidth = target.style.width;
+  const prevGrid = target.style.gridTemplateColumns;
+  const prevMaxWidth = target.style.maxWidth;
+  target.style.maxWidth = "none";
+  target.style.width = "1100px";
+  target.style.gridTemplateColumns = "repeat(3, 1fr)";
+  // Let the browser reflow with the new layout before measuring/capturing.
+  await new Promise(r => requestAnimationFrame(()=> requestAnimationFrame(r)));
+
   try{
-    const target = document.getElementById("pdfCapture");
     const SCALE = 2;
 
     // Record the bottom edge (in CSS px, relative to the capture container) of every
@@ -479,7 +516,8 @@ document.getElementById("pdfBtn").addEventListener("click", async ()=>{
     const canvas = await html2canvas(target, {
       scale: SCALE,
       backgroundColor: "#FBF7EF",
-      useCORS: true
+      useCORS: true,
+      windowWidth: Math.max(document.documentElement.scrollWidth, 1150)
     });
 
     const pxPerCss = canvas.width / targetRect.width; // actual canvas px per CSS px
@@ -527,6 +565,9 @@ document.getElementById("pdfBtn").addEventListener("click", async ()=>{
     console.error("PDF export failed:", e);
     showToast("មិនអាចបង្កើត PDF បានទេ", true);
   }finally{
+    target.style.width = prevWidth;
+    target.style.gridTemplateColumns = prevGrid;
+    target.style.maxWidth = prevMaxWidth;
     btn.disabled = false;
     btn.textContent = original;
   }
