@@ -115,11 +115,20 @@
 
   .overlay{position:fixed;inset:0;background:rgba(36,27,27,0.5);display:none;align-items:center;justify-content:center;z-index:100;padding:16px;}
   .overlay.show{display:flex;}
-  .modal{background:#fff;border-radius:16px;padding:22px;max-width:420px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,0.25);}
+  .modal{background:#fff;border-radius:16px;padding:22px;max-width:420px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,0.25);max-height:90vh;overflow-y:auto;}
   .modal h3{margin:0 0 6px;font-size:16px;font-family:'Poppins',sans-serif;color:var(--red-dark);}
   .modal p{margin:0 0 14px;font-size:13.5px;color:#6b5f4f;}
-  .modal textarea{width:100%;min-height:80px;border-radius:10px;border:1.5px solid var(--line);padding:10px 12px;font-family:inherit;font-size:14px;resize:vertical;}
+  .modal textarea{width:100%;min-height:70px;border-radius:10px;border:1.5px solid var(--line);padding:10px 12px;font-family:inherit;font-size:14px;resize:vertical;}
   .modal textarea:focus{outline:none;border-color:var(--red);}
+  .modal-extra{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);}
+  .modal-extra label{display:block;font-size:12.5px;font-weight:700;color:var(--red-dark);margin:10px 0 5px;}
+  .modal-extra label:first-child{margin-top:0;}
+  .modal-extra input[type=text]{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);font-family:inherit;font-size:14px;background:#FFFDF9;}
+  .modal-extra input[type=text]:focus{outline:none;border-color:var(--red);}
+  .caretoggle{display:flex;gap:8px;}
+  .caretoggle button{flex:1;padding:10px;border-radius:9px;border:1.5px solid var(--line);background:#FFFDF9;font-family:inherit;font-weight:700;font-size:13.5px;cursor:pointer;color:var(--ink);}
+  .caretoggle button.sel-yes{background:var(--green);border-color:var(--green);color:#fff;}
+  .caretoggle button.sel-no{background:#c2382f;border-color:#c2382f;color:#fff;}
   .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;}
   .modal-actions button{border:none;border-radius:9px;padding:10px 18px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;}
   .modal-actions .cancel{background:#F0EAE0;color:var(--ink);}
@@ -170,7 +179,7 @@
         </div>
         <button class="addbtn" id="addBtn">＋ បន្ថែម</button>
       </div>
-      <div class="hint">ជ្រើសរើសភេទ និងវេន រួចចុច "បន្ថែម" — របាយការណ៍នឹងផ្ញើទៅ Telegram ស្វ័យប្រវត្តិ។ ពេលលុប ប្រព័ន្ធនឹងសួរមូលហេតុជាមុនសិន។</div>
+      <div class="hint">ជ្រើសរើសភេទ និងវេន រួចចុច "បន្ថែម" — របាយការណ៍នឹងផ្ញើទៅ Telegram ស្វ័យប្រវត្តិ។ ពេលលុប ប្រព័ន្ធនឹងសួរព័ត៌មានលម្អិត (ថ្នាក់ គ្រូបន្ទុកថ្នាក់ ការមើលថែ) និងមូលហេតុជាមុនសិន។</div>
     </div>
 
     <div class="board" id="pdfCapture">
@@ -263,6 +272,21 @@
     <h3>សិស្សឈប់</h3>
     <p id="modalName">តើអ្នកចង់លុប "..." មែនទេ? សូមបញ្ជាក់មូលហេតុ (ស្រេចចិត្ត)</p>
     <textarea id="reasonInput" placeholder="សរសេរមូលហេតុនៃការលុប..."></textarea>
+
+    <div class="modal-extra" id="modalExtra" style="display:none;">
+      <label>រៀនថ្នាក់ណា</label>
+      <input type="text" id="classInput" placeholder="ឧ. ថ្នាក់ទី៧, វេនព្រឹក...">
+
+      <label>គ្រូបន្ទុកថ្នាក់</label>
+      <input type="text" id="teacherInput" placeholder="ឈ្មោះគ្រូបន្ទុកថ្នាក់...">
+
+      <label>ទទួលការមើលថែឬអត់?</label>
+      <div class="caretoggle" id="careToggle">
+        <button type="button" data-val="yes">ទទួល</button>
+        <button type="button" data-val="no">មិនទទួល</button>
+      </div>
+    </div>
+
     <div class="modal-actions">
       <button class="cancel" id="modalCancel">បោះបង់</button>
       <button class="confirm" id="modalConfirm">លុប</button>
@@ -329,7 +353,7 @@ const PRESET = [
   {n:"គ្រី សុមុន្នី", c:"khmer"}, {n:"ធេង ម៉េងលី", c:"english"}, {n:"ចន្ទ សុផាយ៉ាមេឃ", c:"fulltime"},
   {n:"រ័ត្ន សុវណ្ណចាន់ណាកា", c:"english"}, {n:"ឆុន មរកត", c:"english"},{n:"សេង សាណា", c:"fulltime"},
   {n:"និត សុធារាជ", c:"khmer"}, {n:"សុង រិទ្ធិស័ក្ក", c:"english"}, {n:"ស៊ន វីរៈបញ្ញាទេពី", c:"fulltime"},
-  {n:"សាយ សុខហេង", c:"khmer"}, {n:"ប៊ុនឡេង អ៊ៃឌិន", c:"english"}, {n:"អ៊ឹម រេចនា", c:"fulltime"},
+  {n:"សាយ សុខហេង", c:"khmer"}, {n:"អ៊ឹម រេចនា", c:"fulltime"},
   {n:"វាសនា សុម៉ាលី", c:"khmer"},{n:"កែវ វិនសុឧត្តតារា", c:"fulltime"},
   {n:"សុខ សុវណ្ណេណត", c:"khmer"}, {n:"អោក និស្សិត", c:"english"}, {n:"ឈុនតា រតនៈខុនដូ", c:"fulltime"},
   {n:"លួត ស្រីព្រជ", c:"khmer"}, {n:"អោក ឧត្តម", c:"english"}, {n:"យ៉ាព្រជ ម៉ូនីកា", c:"fulltime"},
@@ -392,22 +416,66 @@ function showToast(msg, isErr){
   showToast._tid = setTimeout(()=> t.classList.remove("show"), 3000);
 }
 
-function askDeleteReason(name){
+// ---- Delete modal --------------------------------------------------------
+// When `extended` is true (used for the main roster panel) the modal also
+// asks for the class the student was in, the homeroom teacher's name, and
+// whether the student is receiving care follow-up. These extra fields are
+// then attached to the Telegram report.
+let careSelection = "";
+
+function askDeleteReason(name, extended){
   return new Promise(resolve=>{
     const overlay = document.getElementById("overlay");
     const reasonInput = document.getElementById("reasonInput");
+    const modalExtra = document.getElementById("modalExtra");
+    const classInput = document.getElementById("classInput");
+    const teacherInput = document.getElementById("teacherInput");
+    const careToggle = document.getElementById("careToggle");
+    const careBtns = Array.from(careToggle.querySelectorAll("button"));
+
     document.getElementById("modalName").textContent = `តើអ្នកចង់លុប "${name}" មែនទេ? សូមបញ្ជាក់មូលហេតុ (ស្រេចចិត្ត)`;
     reasonInput.value = "";
+    classInput.value = "";
+    teacherInput.value = "";
+    careSelection = "";
+    careBtns.forEach(b=> b.classList.remove("sel-yes","sel-no"));
+    modalExtra.style.display = extended ? "block" : "none";
+
     overlay.classList.add("show");
     reasonInput.focus();
+
+    function onCareClick(e){
+      const val = e.currentTarget.getAttribute("data-val");
+      careSelection = val;
+      careBtns.forEach(b=>{
+        b.classList.remove("sel-yes","sel-no");
+        if(b.getAttribute("data-val")===careSelection){
+          b.classList.add(val==="yes" ? "sel-yes" : "sel-no");
+        }
+      });
+    }
+    careBtns.forEach(b=> b.addEventListener("click", onCareClick));
+
     const confirmBtn = document.getElementById("modalConfirm");
     const cancelBtn = document.getElementById("modalCancel");
+
     function cleanup(){
       overlay.classList.remove("show");
       confirmBtn.removeEventListener("click", onConfirm);
       cancelBtn.removeEventListener("click", onCancel);
+      careBtns.forEach(b=> b.removeEventListener("click", onCareClick));
     }
-    function onConfirm(){ const r = reasonInput.value.trim(); cleanup(); resolve(r || "(មិនបានបញ្ជាក់)"); }
+    function onConfirm(){
+      const r = reasonInput.value.trim();
+      const result = {
+        reason: r || "(មិនបានបញ្ជាក់)",
+        className: extended ? classInput.value.trim() : "",
+        teacher: extended ? teacherInput.value.trim() : "",
+        care: extended ? (careSelection==="yes" ? "ទទួល" : careSelection==="no" ? "មិនទទួល" : "-") : ""
+      };
+      cleanup();
+      resolve(result);
+    }
     function onCancel(){ cleanup(); resolve(null); }
     confirmBtn.addEventListener("click", onConfirm);
     cancelBtn.addEventListener("click", onCancel);
@@ -450,12 +518,15 @@ function renderMain(){
       const id = btn.getAttribute("data-id");
       const removed = roster.find(s=>s.id===id);
       if(!removed) return;
-      const reason = await askDeleteReason(removed.name);
-      if(reason===null) return;
+      const result = await askDeleteReason(removed.name, true);
+      if(result===null) return;
       roster = roster.filter(s=>s.id!==id);
       await saveKey(STORAGE_MAIN, roster);
       renderMain();
-      sendTelegramReport({name:removed.name, gender:removed.gender, category:removed.category, action:"remove", reason});
+      sendTelegramReport({
+        name:removed.name, gender:removed.gender, category:removed.category, action:"remove",
+        reason:result.reason, className:result.className, teacher:result.teacher, care:result.care
+      });
     });
   });
 }
@@ -573,7 +644,7 @@ document.getElementById("pdfBtn").addEventListener("click", async ()=>{
   }
 });
 
-async function sendTelegramReport({name, gender, category, action, reason}){
+async function sendTelegramReport({name, gender, category, action, reason, className, teacher, care}){
   const counts = {
     fulltime: roster.filter(s=>s.category==="fulltime").length,
     khmer: roster.filter(s=>s.category==="khmer").length,
@@ -592,7 +663,14 @@ async function sendTelegramReport({name, gender, category, action, reason}){
 ភេទ: ${gender || "-"}
 កាលបរិច្ឆេទ: ${todayStr()}
 ប្រភេទសិស្ស: ${CAT_LABEL[category]}`;
-  if(action==="remove"){ text += `\nមូលហេតុ: ${reason}`; }
+
+  if(action==="remove"){
+    if(className) text += `\nរៀនថ្នាក់: ${className}`;
+    if(teacher) text += `\nគ្រូបន្ទុកថ្នាក់: ${teacher}`;
+    if(care) text += `\nទទួលការមើលថែ: ${care}`;
+    text += `\nមូលហេតុ: ${reason}`;
+  }
+
   text += `
 
 ${catChanged}: ${counts[category]} (${sign})
@@ -641,8 +719,8 @@ function renderTrials(){
       const id = btn.getAttribute("data-id");
       const removed = trials.find(s=>s.id===id);
       if(!removed) return;
-      const reason = await askDeleteReason(removed.name);
-      if(reason===null) return;
+      const result = await askDeleteReason(removed.name, false);
+      if(result===null) return;
       trials = trials.filter(s=>s.id!==id);
       await saveKey(STORAGE_TRIAL, trials);
       renderTrials();
@@ -685,8 +763,8 @@ function renderCares(){
       const id = btn.getAttribute("data-id");
       const removed = cares.find(s=>s.id===id);
       if(!removed) return;
-      const reason = await askDeleteReason(removed.name);
-      if(reason===null) return;
+      const result = await askDeleteReason(removed.name, false);
+      if(result===null) return;
       cares = cares.filter(s=>s.id!==id);
       await saveKey(STORAGE_CARE, cares);
       renderCares();
