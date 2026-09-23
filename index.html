@@ -2,7 +2,7 @@
 <html lang="km">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>ប្រព័ន្ធបែងចែកសិស្សតាមវេន</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -38,6 +38,7 @@
 
   .addcard{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;margin-top:18px;box-shadow:0 2px 10px rgba(36,27,27,0.04);}
   .addcard h2{font-family:'Poppins',sans-serif;font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--red-dark);margin:0 0 14px;font-weight:700;}
+  .addcard .lead{font-size:13.5px;color:#6b5f4f;margin:0 0 14px;}
   .addrow{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch;}
   .addrow input[type=text], .addrow input[type=date]{
     flex:1 1 180px;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);
@@ -116,6 +117,7 @@
   .overlay{position:fixed;inset:0;background:rgba(36,27,27,0.5);display:none;align-items:center;justify-content:center;z-index:100;padding:16px;}
   .overlay.show{display:flex;}
   .modal{background:#fff;border-radius:16px;padding:22px;max-width:420px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,0.25);max-height:90vh;overflow-y:auto;}
+  .modal.add-modal{max-width:480px;}
   .modal h3{margin:0 0 6px;font-size:16px;font-family:'Poppins',sans-serif;color:var(--red-dark);}
   .modal p{margin:0 0 14px;font-size:13.5px;color:#6b5f4f;}
   .modal textarea{width:100%;min-height:70px;border-radius:10px;border:1.5px solid var(--line);padding:10px 12px;font-family:inherit;font-size:14px;resize:vertical;}
@@ -134,6 +136,28 @@
   .modal-actions .cancel{background:#F0EAE0;color:var(--ink);}
   .modal-actions .confirm{background:var(--red);color:#fff;}
   .modal-actions .confirm:hover{background:var(--red-dark);}
+
+  /* --- Add-student modal rows --- */
+  .add-row-item{border:1.5px dashed var(--line);border-radius:12px;padding:12px;margin-bottom:12px;}
+  .row-top{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+  .row-top .row-name{flex:1;padding:10px 12px;border-radius:9px;border:1.5px solid var(--line);font-family:inherit;font-size:14px;background:#FFFDF9;}
+  .row-top .row-name:focus{outline:none;border-color:var(--red);}
+  .row-del{background:none;border:none;cursor:pointer;color:#c2382f;font-size:16px;padding:6px 8px;border-radius:6px;flex-shrink:0;font-family:inherit;}
+  .row-del:hover{background:#FBE4E2;}
+  .row-label{display:block;font-size:12px;font-weight:700;color:var(--red-dark);margin:8px 0 5px;}
+  .row-class{width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--line);font-family:inherit;font-size:14px;background:#FFFDF9;}
+  .row-class:focus{outline:none;border-color:var(--red);}
+  .toggle-group{display:flex;gap:6px;flex-wrap:wrap;}
+  .toggle-group button{flex:1;min-width:64px;padding:8px 8px;border-radius:8px;border:1.5px solid var(--line);background:#FFFDF9;font-family:inherit;font-weight:700;font-size:12.5px;cursor:pointer;color:var(--ink);}
+  .toggle-group button.selected[data-val="ប្រុស"]{background:var(--blue);border-color:var(--blue);color:#fff;}
+  .toggle-group button.selected[data-val="ស្រី"]{background:#B4487A;border-color:#B4487A;color:#fff;}
+  .toggle-group button.selected[data-val="fulltime"]{background:var(--purple);border-color:var(--purple);color:#fff;}
+  .toggle-group button.selected[data-val="english"]{background:var(--blue);border-color:var(--blue);color:#fff;}
+  .toggle-group button.selected[data-val="khmer"]{background:var(--green);border-color:var(--green);color:#fff;}
+  .toggle-group button.selected[data-val="yes"]{background:var(--green);border-color:var(--green);color:#fff;}
+  .toggle-group button.selected[data-val="no"]{background:#c2382f;border-color:#c2382f;color:#fff;}
+  .addrowbtn{display:block;width:100%;padding:10px;border-radius:9px;border:1.5px dashed var(--red);background:#FFF7F3;color:var(--red-dark);font-family:inherit;font-weight:700;font-size:13.5px;cursor:pointer;margin-top:4px;}
+  .addrowbtn:hover{background:#FDEAE0;}
 
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px;
     font-size:13.5px;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,0.2);opacity:0;pointer-events:none;transition:opacity .25s, transform .25s;z-index:50;}
@@ -161,25 +185,9 @@
   <div class="panel active" id="panel-main">
     <div class="addcard">
       <h2>សិស្សថ្មី</h2>
-      <div class="addrow">
-        <input type="text" id="nameInput" placeholder="សរសេរឈ្មោះសិស្ស...">
-        <div class="seg">
-          <input type="radio" name="gender" id="g-male" value="ប្រុស" checked>
-          <label data-cat="fulltime" for="g-male">ប្រុស</label>
-          <input type="radio" name="gender" id="g-female" value="ស្រី">
-          <label data-cat="english" for="g-female">ស្រី</label>
-        </div>
-        <div class="seg">
-          <input type="radio" name="cat" id="cat-fulltime" value="fulltime" checked>
-          <label data-cat="fulltime" for="cat-fulltime">ពេញម៉ោង</label>
-          <input type="radio" name="cat" id="cat-english" value="english">
-          <label data-cat="english" for="cat-english">English</label>
-          <input type="radio" name="cat" id="cat-khmer" value="khmer">
-          <label data-cat="khmer" for="cat-khmer">ខ្មែរ</label>
-        </div>
-        <button class="addbtn" id="addBtn">＋ បន្ថែម</button>
-      </div>
-      <div class="hint">ជ្រើសរើសភេទ និងវេន រួចចុច "បន្ថែម" — របាយការណ៍នឹងផ្ញើទៅ Telegram ស្វ័យប្រវត្តិ។ ពេលលុប ប្រព័ន្ធនឹងសួរព័ត៌មានលម្អិត (ថ្នាក់ គ្រូបន្ទុកថ្នាក់ ការមើលថែ) និងមូលហេតុជាមុនសិន។</div>
+      <p class="lead">ចុចប៊ូតុងខាងក្រោមដើម្បីបញ្ចូលព័ត៌មានលម្អិត (ឈ្មោះ ភេទ កម្មវិធីសិក្សា ថ្នាក់ និងការទទួលមើលថែ)។ អាចបន្ថែមសិស្សច្រើននាក់ក្នុងពេលតែមួយ។</p>
+      <button class="addbtn" id="openAddModalBtn">＋ បន្ថែមសិស្សថ្មី</button>
+      <div class="hint">ពេលលុប ប្រព័ន្ធនឹងសួរព័ត៌មានលម្អិត (ថ្នាក់ គ្រូបន្ទុកថ្នាក់ ការមើលថែ) និងមូលហេតុជាមុនសិន។ របាយការណ៍ផ្ញើទៅ Telegram ស្វ័យប្រវត្តិ។</div>
     </div>
 
     <div class="board" id="pdfCapture">
@@ -267,6 +275,7 @@
 
 </div>
 
+<!-- Delete confirmation modal -->
 <div class="overlay" id="overlay">
   <div class="modal">
     <h3>សិស្សឈប់</h3>
@@ -294,6 +303,20 @@
   </div>
 </div>
 
+<!-- Add student(s) modal -->
+<div class="overlay" id="addOverlay">
+  <div class="modal add-modal">
+    <h3>បន្ថែមសិស្សថ្មី</h3>
+    <p>បំពេញព័ត៌មានសិស្ស ១ ឬច្រើននាក់ រួចចុច "បន្ថែម"</p>
+    <div id="addRows"></div>
+    <button type="button" class="addrowbtn" id="addRowBtn">＋ បន្ថែមជួរថ្មី</button>
+    <div class="modal-actions">
+      <button class="cancel" id="addModalCancel">បោះបង់</button>
+      <button class="confirm" id="addModalConfirm">បន្ថែម</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -302,9 +325,9 @@
 const TELEGRAM_BOT_TOKEN = '8501623225:AAGu-F_GHSQ-dLBrEME7eidOpW2yDf3qvXw';
 const SUMMARY_CHAT_ID = '-1003814592979';
 
-const STORAGE_MAIN = "roster:students";
-const STORAGE_TRIAL = "roster:trial";
-const STORAGE_CARE = "roster:care";
+const STORAGE_MAIN = "roster/main";
+const STORAGE_TRIAL = "roster/trial";
+const STORAGE_CARE = "roster/care";
 const CATS = ["fulltime","english","khmer"];
 const CAT_LABEL = {fulltime:"ពេញម៉ោង", english:"តែអង់គ្លេស", khmer:"តែខ្មែរ"};
 
@@ -392,18 +415,30 @@ const CARE_PRESET = [
   {n:"ហុី ជីងជីង", note:"ទទួលការមើលថែតែ១ខែទេ ព្រោះប៉ារបស់គាត់សុំផ្អាកសិន សាលារបស់គាត់គេវ៉ាកង់"}
 ];
 
-async function loadKey(key, presetMapper){
-  try{
-    const res = await window.storage.get(key, false);
-    if(res && res.value) return JSON.parse(res.value);
-  }catch(e){ /* not found yet */ }
+let dbApi = null;
+async function initDb(){
+  try{ dbApi = await claude.use("db"); }
+  catch(e){ dbApi = null; }
+  if(!dbApi) showToast("មិនអាចភ្ជាប់ទៅកន្លែងផ្ទុកទិន្នន័យបានទេ", true);
+}
+
+async function loadKey(path, presetMapper){
+  if(dbApi){
+    try{
+      const snap = await dbApi.doc(path).get();
+      if(snap.exists && snap.data() && Array.isArray(snap.data().items)) return snap.data().items;
+    }catch(e){ console.error(e); }
+  }
   const seeded = presetMapper ? presetMapper() : [];
-  try{ await window.storage.set(key, JSON.stringify(seeded), false); }catch(e2){ console.error(e2); }
+  if(dbApi){
+    try{ await dbApi.doc(path).set({items: seeded}); }catch(e2){ console.error(e2); }
+  }
   return seeded;
 }
-async function saveKey(key, data){
-  try{ await window.storage.set(key, JSON.stringify(data), false); }
-  catch(e){ console.error("Storage error:", e); showToast("មិនអាចរក្សាទុកទិន្នន័យបានទេ", true); }
+async function saveKey(path, data){
+  if(!dbApi){ showToast("មិនអាចរក្សាទុកទិន្នន័យបានទេ", true); return; }
+  try{ await dbApi.doc(path).set({items: data}); }
+  catch(e){ console.error("DB error:", e); showToast("មិនអាចរក្សាទុកទិន្នន័យបានទេ", true); }
 }
 
 function showToast(msg, isErr){
@@ -491,7 +526,7 @@ document.querySelectorAll(".tabbtn").forEach(btn=>{
 });
 
 async function loadMain(){
-  roster = await loadKey(STORAGE_MAIN, ()=> PRESET.map(p=>({id:uid(), name:p.n, gender:"", category:p.c})));
+  roster = await loadKey(STORAGE_MAIN, ()=> PRESET.map(p=>({id:uid(), name:p.n, gender:"", category:p.c, className:"", care:""})));
   renderMain();
 }
 function renderMain(){
@@ -505,8 +540,16 @@ function renderMain(){
     listEl.innerHTML = items.length===0 ? '<div class="empty">មិនទាន់មានសិស្សនៅឡើយ</div>' :
       items.map((s,i)=>{
         const gClass = s.gender==="ប្រុស" ? "male" : (s.gender==="ស្រី" ? "female" : "unknown");
+        const metaParts = [];
+        if(s.className) metaParts.push("ថ្នាក់៖ " + escapeHtml(s.className));
+        if(s.care==="yes") metaParts.push("ទទួលការមើលថែ");
+        else if(s.care==="no") metaParts.push("មិនទទួលការមើលថែ");
+        const metaLine = metaParts.length ? `<span class="meta">${metaParts.join(" • ")}</span>` : "";
         return `<div class="card">
-          <span><span class="num">${i+1}.</span><span class="gtag ${gClass}">${s.gender||"?"}</span>${escapeHtml(s.name)}</span>
+          <div class="info">
+            <span><span class="num">${i+1}.</span><span class="gtag ${gClass}">${s.gender||"?"}</span>${escapeHtml(s.name)}</span>
+            ${metaLine}
+          </div>
           <button class="del" data-id="${s.id}" title="លុប">✕</button>
         </div>`;
       }).join("");
@@ -530,19 +573,122 @@ function renderMain(){
   });
 }
 
-document.getElementById("addBtn").addEventListener("click", async ()=>{
-  const input = document.getElementById("nameInput");
-  const name = input.value.trim();
-  if(!name){ input.focus(); return; }
-  const cat = document.querySelector('input[name="cat"]:checked').value;
-  const gender = document.querySelector('input[name="gender"]:checked').value;
-  roster.push({id:uid(), name, gender, category:cat});
-  input.value = ""; input.focus();
+// ---- Add student(s) modal (supports multiple rows) -----------------------
+let addRowCounter = 0;
+
+function addRowHtml(){
+  return `
+  <div class="add-row-item">
+    <div class="row-top">
+      <input type="text" class="row-name" placeholder="ឈ្មោះសិស្ស...">
+      <button type="button" class="row-del" title="លុបជួរនេះ">✕</button>
+    </div>
+    <label class="row-label">ភេទ</label>
+    <div class="toggle-group gender-toggle">
+      <button type="button" data-val="ប្រុស" class="selected">ប្រុស</button>
+      <button type="button" data-val="ស្រី">ស្រី</button>
+    </div>
+    <label class="row-label">កម្មវិធីសិក្សា</label>
+    <div class="toggle-group cat-toggle">
+      <button type="button" data-val="fulltime" class="selected">ពេញម៉ោង</button>
+      <button type="button" data-val="english">English</button>
+      <button type="button" data-val="khmer">ខ្មែរ</button>
+    </div>
+    <label class="row-label">ថ្នាក់</label>
+    <input type="text" class="row-class" placeholder="ឧ. ថ្នាក់ទី៧, វេនព្រឹក...">
+    <label class="row-label">ទទួលការមើលថែឬអត់?</label>
+    <div class="toggle-group care-toggle">
+      <button type="button" data-val="yes">ទទួល</button>
+      <button type="button" data-val="no">មិនទទួល</button>
+    </div>
+  </div>`;
+}
+
+function bindRow(rowEl){
+  rowEl.querySelectorAll(".toggle-group").forEach(group=>{
+    const btns = Array.from(group.querySelectorAll("button"));
+    btns.forEach(b=> b.addEventListener("click", ()=>{
+      btns.forEach(x=>x.classList.remove("selected"));
+      b.classList.add("selected");
+    }));
+  });
+  rowEl.querySelector(".row-del").addEventListener("click", ()=>{
+    const rows = document.querySelectorAll("#addRows .add-row-item");
+    if(rows.length<=1){
+      rowEl.querySelector(".row-name").value = "";
+      rowEl.querySelector(".row-class").value = "";
+      rowEl.querySelectorAll(".toggle-group").forEach(g=>{
+        g.querySelectorAll("button").forEach(b=>b.classList.remove("selected"));
+      });
+      rowEl.querySelector('.gender-toggle button[data-val="ប្រុស"]').classList.add("selected");
+      rowEl.querySelector('.cat-toggle button[data-val="fulltime"]').classList.add("selected");
+      return;
+    }
+    rowEl.remove();
+  });
+}
+
+function addNewRow(){
+  addRowCounter++;
+  const wrap = document.getElementById("addRows");
+  const holder = document.createElement("div");
+  holder.innerHTML = addRowHtml();
+  const rowEl = holder.firstElementChild;
+  wrap.appendChild(rowEl);
+  bindRow(rowEl);
+  rowEl.querySelector(".row-name").focus();
+}
+
+function resetAddModal(){
+  document.getElementById("addRows").innerHTML = "";
+  addRowCounter = 0;
+  addNewRow();
+}
+
+document.getElementById("openAddModalBtn").addEventListener("click", ()=>{
+  resetAddModal();
+  document.getElementById("addOverlay").classList.add("show");
+});
+document.getElementById("addRowBtn").addEventListener("click", addNewRow);
+document.getElementById("addModalCancel").addEventListener("click", ()=>{
+  document.getElementById("addOverlay").classList.remove("show");
+});
+document.getElementById("addModalConfirm").addEventListener("click", async ()=>{
+  const rowEls = Array.from(document.querySelectorAll("#addRows .add-row-item"));
+  const newStudents = [];
+  rowEls.forEach(rowEl=>{
+    const name = rowEl.querySelector(".row-name").value.trim();
+    if(!name) return;
+    const genderBtn = rowEl.querySelector(".gender-toggle button.selected");
+    const catBtn = rowEl.querySelector(".cat-toggle button.selected");
+    const careBtn = rowEl.querySelector(".care-toggle button.selected");
+    const className = rowEl.querySelector(".row-class").value.trim();
+    newStudents.push({
+      id:uid(),
+      name,
+      gender: genderBtn ? genderBtn.getAttribute("data-val") : "",
+      category: catBtn ? catBtn.getAttribute("data-val") : "fulltime",
+      className,
+      care: careBtn ? careBtn.getAttribute("data-val") : ""
+    });
+  });
+  if(newStudents.length===0){
+    showToast("សូមបញ្ចូលឈ្មោះសិស្សយ៉ាងហោចណាស់ម្នាក់", true);
+    return;
+  }
+  roster.push(...newStudents);
   await saveKey(STORAGE_MAIN, roster);
   renderMain();
-  sendTelegramReport({name, gender, category:cat, action:"add"});
+  document.getElementById("addOverlay").classList.remove("show");
+  showToast(`បានបន្ថែមសិស្ស ${newStudents.length} នាក់ ✓`);
+  for(const s of newStudents){
+    await sendTelegramReport({
+      name:s.name, gender:s.gender, category:s.category, action:"add",
+      className:s.className,
+      care: s.care==="yes" ? "ទទួល" : s.care==="no" ? "មិនទទួល" : ""
+    });
+  }
 });
-document.getElementById("nameInput").addEventListener("keydown", e=>{ if(e.key==="Enter") document.getElementById("addBtn").click(); });
 
 document.getElementById("resetBtn").addEventListener("click", async ()=>{
   if(!confirm("តើអ្នកចង់លុបទិន្នន័យសិស្សប្រចាំវេនទាំងអស់មែនទេ? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។")) return;
@@ -558,23 +704,17 @@ document.getElementById("pdfBtn").addEventListener("click", async ()=>{
   btn.textContent = "កំពុងបង្កើត PDF...";
 
   const target = document.getElementById("pdfCapture");
-  // Save inline styles so we can force a 3-column side-by-side layout for the
-  // capture even on narrow/mobile viewports (where the responsive CSS would
-  // normally stack the columns), then restore them afterwards.
   const prevWidth = target.style.width;
   const prevGrid = target.style.gridTemplateColumns;
   const prevMaxWidth = target.style.maxWidth;
   target.style.maxWidth = "none";
   target.style.width = "1100px";
   target.style.gridTemplateColumns = "repeat(3, 1fr)";
-  // Let the browser reflow with the new layout before measuring/capturing.
   await new Promise(r => requestAnimationFrame(()=> requestAnimationFrame(r)));
 
   try{
     const SCALE = 2;
 
-    // Record the bottom edge (in CSS px, relative to the capture container) of every
-    // card, so page breaks can be placed between cards instead of through them.
     const targetRect = target.getBoundingClientRect();
     const cutPoints = new Set([Math.round(targetRect.height)]);
     target.querySelectorAll(".card").forEach(card=>{
@@ -590,7 +730,7 @@ document.getElementById("pdfBtn").addEventListener("click", async ()=>{
       windowWidth: Math.max(document.documentElement.scrollWidth, 1150)
     });
 
-    const pxPerCss = canvas.width / targetRect.width; // actual canvas px per CSS px
+    const pxPerCss = canvas.width / targetRect.width;
     const sortedCutsPx = sortedCutsCss.map(v=> Math.round(v * pxPerCss));
 
     const { jsPDF } = window.jspdf;
@@ -600,7 +740,7 @@ document.getElementById("pdfBtn").addEventListener("click", async ()=>{
     const margin = 8;
     const usableWidth = pageWidth - margin * 2;
     const usableHeight = pageHeight - margin * 2;
-    const pxPerMm = canvas.width / usableWidth; // uniform scale (width fitted to page)
+    const pxPerMm = canvas.width / usableWidth;
     const pageHeightPx = Math.floor(usableHeight * pxPerMm);
 
     let cursor = 0;
@@ -610,7 +750,7 @@ document.getElementById("pdfBtn").addEventListener("click", async ()=>{
       const candidates = sortedCutsPx.filter(p => p > cursor && p <= limit);
       let cut = candidates.length ? candidates[candidates.length - 1] : Math.min(limit, canvas.height);
       cut = Math.min(cut, canvas.height);
-      if (cut <= cursor) cut = Math.min(limit, canvas.height); // safety: force progress
+      if (cut <= cursor) cut = Math.min(limit, canvas.height);
 
       const sliceHeightPx = cut - cursor;
       const sliceCanvas = document.createElement("canvas");
@@ -663,10 +803,10 @@ async function sendTelegramReport({name, gender, category, action, reason, class
 កាលបរិច្ឆេទ: ${todayStr()}
 ប្រភេទសិស្ស: ${CAT_LABEL[category]}`;
 
+  if(className) text += `\nរៀនថ្នាក់: ${className}`;
+  if(teacher) text += `\nគ្រូបន្ទុកថ្នាក់: ${teacher}`;
+  if(care) text += `\nទទួលការមើលថែ: ${care}`;
   if(action==="remove"){
-    if(className) text += `\nរៀនថ្នាក់: ${className}`;
-    if(teacher) text += `\nគ្រូបន្ទុកថ្នាក់: ${teacher}`;
-    if(care) text += `\nទទួលការមើលថែ: ${care}`;
     text += `\nមូលហេតុ: ${reason}`;
   }
 
@@ -783,9 +923,12 @@ document.getElementById("careAddBtn").addEventListener("click", async ()=>{
   renderCares();
 });
 
-loadMain();
-loadTrials();
-loadCares();
+(async function init(){
+  await initDb();
+  await loadMain();
+  await loadTrials();
+  await loadCares();
+})();
 </script>
 </body>
 </html>
